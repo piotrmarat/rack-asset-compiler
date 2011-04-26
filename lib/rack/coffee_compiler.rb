@@ -11,11 +11,13 @@ module Rack
         :content_type => 'text/javascript',
         :source_extension => 'coffee',
         :alert_on_error => ENV['RACK_ENV'] != 'production',
-        :lock => LOCK
+        :lock => LOCK,
+        :bare => true
       }.merge(options)
 
       @alert_on_error = options[:alert_on_error]
       @lock = options[:lock]
+      @bare = options[:bare]
       super
     end
 
@@ -29,7 +31,8 @@ module Rack
 
     def unsynchronized_compile(source_file)
       begin
-        CoffeeScript.compile(::File.read(source_file))
+        opts = {:bare => @bare}
+        CoffeeScript.compile(::File.read(source_file), opts)
       rescue CoffeeScript::CompilationError => e
         if @alert_on_error
           error_msg = "CoffeeScript compilation error in #{source_file}.coffee:\n\n #{e.to_s}"
